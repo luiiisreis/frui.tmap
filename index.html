@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FruitMap - Goiânia</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        :root {
+            --primary: #2e7d32;
+            --secondary: #fb8c00;
+            --light: #f1f8e9;
+        }
+        body { margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--light); }
+        #map { height: 75vh; width: 95%; margin: 0 auto; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); z-index: 1; }
+        .header {
+            padding: 20px; 
+            background: var(--primary); 
+            color: white; 
+            text-align: center; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            margin-bottom: 20px;
+        }
+        .header h1 { margin: 0; font-size: 24px; letter-spacing: 1px; }
+        .header p { margin: 5px 0 0; opacity: 0.9; }
+        .btn-cadastro {
+            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+            background: var(--secondary); color: white; padding: 15px 35px;
+            border-radius: 50px; text-decoration: none; font-weight: bold; 
+            z-index: 1000; box-shadow: 0 4px 15px rgba(251, 140, 0, 0.4);
+            transition: all 0.3s ease; text-transform: uppercase; font-size: 14px;
+        }
+        .btn-cadastro:hover {
+            background: #e67e22; transform: translateX(-50%) scale(1.05);
+            box-shadow: 0 6px 20px rgba(251, 140, 0, 0.6);
+        }
+        .leaflet-popup-content-wrapper { border-radius: 8px; }
+        .fruit-label { font-weight: bold; color: var(--primary); }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>FruitMap GYN 🌿</h1>
+    <p>Descubra e compartilhe frutas no seu bairro</p>
+</div>
+
+<div id="map"></div>
+
+<a href="#" class="btn-cadastro">Cadastrar meu quintal</a>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+    // Inicialização do mapa
+    var map = L.map('map', { zoomControl: false }).setView([-16.6869, -49.2648], 13);
+    L.control.zoom({ position: 'topright' }).addTo(map);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+
+    // Dados simulados com cores baseadas no status
+    var colheitas = [
+        { nome: "Manga Palmer", status: "80% Madura", lat: -16.689, lng: -49.260, cor: "#FF9800" },
+        { nome: "Jabuticaba", status: "Pronta para colher", lat: -16.695, lng: -49.270, cor: "#4b0082" },
+        { nome: "Limão Taiti", status: "Ainda Verde", lat: -16.680, lng: -49.255, cor: "#8BC34A" }
+    ];
+
+    colheitas.forEach(function(item) {
+        // Criando um círculo customizado em vez de marcador padrão para visual moderno
+        L.circleMarker([item.lat, item.lng], {
+            radius: 10,
+            fillColor: item.cor,
+            color: "#fff",
+            weight: 2,
+            opacity: 1,
+            fillOpacity: 0.8
+        }).addTo(map)
+          .bindPopup("<div style='text-align:center'><span class='fruit-label'>" + item.nome + "</span><br>" + item.status + "</div>");
+    });
+</script>
+</body>
+</html>

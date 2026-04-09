@@ -65,11 +65,9 @@
         video.srcObject = stream;
     }
 
-    function stopCamera() {
-        const stream = video.srcObject;
-        const tracks = stream.getTracks();
-        tracks.forEach(track => track.stop());
-        container.style.display = 'none';
+    function takePhoto() {
+    alert("🔍 ANALISANDO IMAGEM...\n\nNossa IA está identificando a espécie e o nível de maturação. \n\n✅ Em breve, este resultado aparecerá direto no seu perfil do FruitMap!");
+    stopCamera();
     }
 
     function takePhoto() {

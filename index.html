@@ -5,18 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FruitMap - Goiânia</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f4f4f4; }
-        #map { height: 70vh; width: 100%; }
-        .header { padding: 15px; background: #2e7d32; color: white; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
-        
-        /* Botões */
-        .controls { display: flex; justify-content: space-around; padding: 15px; background: white; }
-        .btn { padding: 12px 20px; border-radius: 25px; border: none; font-weight: bold; cursor: pointer; transition: 0.3s; }
-        .btn-scan { background: #ff9800; color: white; box-shadow: 0 4px 15px rgba(255,152,0,0.4); }
-        .btn-list { background: #2e7d32; color: white; }
-
-        /* Preview da Câmera */
+        body { margin: 0; font-family: sans-serif; background: #f0f2f5; }
+        #map { height: 60vh; width: 100%; }
+        .header { padding: 15px; background: #2e7d32; color: white; text-align: center; }
+        .controls { padding: 20px; display: flex; flex-direction: column; gap: 10px; }
+        .btn { padding: 15px; border-radius: 10px; border: none; font-weight: bold; cursor: pointer; font-size: 16px; }
+        .btn-scan { background: #ff9800; color: white; }
         #camera-container { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: black; z-index: 2000; }
         video { width: 100%; height: 100%; object-fit: cover; }
         .capture-btn { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); width: 70px; height: 70px; background: white; border-radius: 50%; border: 5px solid #ccc; }
@@ -26,36 +22,54 @@
 
 <div class="header">
     <h2 style="margin:0;">FruitMap GYN</h2>
-    <small>IA de Monitoramento Urbano</small>
+    <small>Conectando Quintais de Goiânia</small>
 </div>
 
 <div id="map"></div>
 
 <div class="controls">
-    <button class="btn btn-list" onclick="alert('Lista de vizinhos em breve!')">VER LISTA</button>
-    <button class="btn btn-scan" onclick="startCamera()">SCANEAR FRUTA 📸</button>
+    <button class="btn btn-scan" onclick="startCamera()">📸 SCANEAR NOVA FRUTA</button>
 </div>
 
 <div id="camera-container">
     <video id="video" autoplay playsinline></video>
-    <div class="capture-btn" onclick="takePhoto()"></div>
-    <button onclick="stopCamera()" style="position:fixed; top:20px; right:20px; color:white; background:none; border:none; font-size:20px;">X</button>
+    <div class="capture-btn" onclick="saveToSupabase()"></div>
+    <button onclick="stopCamera()" style="position:fixed; top:20px; right:20px; color:white; background:none; border:none; font-size:24px;">X</button>
 </div>
 
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-    // Inicializa Mapa
+    // CONFIGURAÇÃO SUPABASE
+    const SUPABASE_URL = 'https://dcvrmdbgwjddkpzjtlkq.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_L7TOtZx76mq3g2N_cPMWFg_B1DpQ9rC';
+    const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    // INICIALIZA MAPA (Goiânia)
     var map = L.map('map').setView([-16.6869, -49.2648], 13);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-    // Pins iniciais
-    var colheitas = [
-        { nome: "Manga Palmer", status: "80% Madura", lat: -16.689, lng: -49.260 },
-        { nome: "Jabuticaba", status: "Pronta", lat: -16.695, lng: -49.270 }
-    ];
-    colheitas.forEach(f => L.marker([f.lat, f.lng]).addTo(map).bindPopup(f.nome + " - " + f.status));
+    // FUNÇÃO PARA SALVAR DADOS REAIS
+    async function saveToSupabase() {
+        const frutaNome = prompt("Qual fruta você encontrou?");
+        const zap = prompt("Seu WhatsApp para contato:");
+        
+        if (frutaNome && zap) {
+            const { data, error } = await _supabase
+                .from('colheitas')
+                .insert([
+                    { fruta: frutaNome, whatsapp: zap, status: 'Identificado', lat: -16.6869, lng: -49.2648 }
+                ]);
 
-    // Lógica da Câmera
+            if (error) {
+                alert("Erro ao salvar: " + error.message);
+            } else {
+                alert("✅ SUCESSO!\n" + frutaNome + " foi mapeada em Goiânia.");
+                location.reload(); // Recarrega para mostrar o novo ponto (em breve)
+            }
+        }
+        stopCamera();
+    }
+
+    // LÓGICA DA CÂMERA
     const video = document.getElementById('video');
     const container = document.getElementById('camera-container');
 
@@ -65,15 +79,13 @@
         video.srcObject = stream;
     }
 
-    function takePhoto() {
-    alert("🔍 ANALISANDO IMAGEM...\n\nNossa IA está identificando a espécie e o nível de maturação. \n\n✅ Em breve, este resultado aparecerá direto no seu perfil do FruitMap!");
-    stopCamera();
-    }
-
-    function takePhoto() {
-        alert("IA FRUITMAP:\nDetectado: Manga Palmer\nMaturação: 85%\nEstimativa: Colher em 3 dias!");
-        stopCamera();
+    function stopCamera() {
+        if (video.srcObject) {
+            video.srcObject.getTracks().forEach(track => track.stop());
+        }
+        container.style.display = 'none';
     }
 </script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </body>
 </html>

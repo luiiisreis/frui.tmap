@@ -3,52 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FruitMap GYN - Portal IA com GPS</title>
-    
+    <title>FruitMap GYN - Portal Oficial</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.17.0"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet@2.1.0"></script>
-
     <style>
-        body { margin: 0; font-family: 'Segoe UI', Arial, sans-serif; background: #fff; color: #333; }
-        .header { padding: 15px; background: #2e7d32; color: white; text-align: center; }
-        #map { height: 45vh; width: 100%; border-bottom: 4px solid #2e7d32; }
-        
-        .instrucoes { padding: 20px; background: #f9f9f9; }
-        .instrucoes h3 { color: #2e7d32; margin-top: 0; font-size: 18px; }
-        .passo { display: flex; align-items: flex-start; margin-bottom: 12px; font-size: 14px; }
-        .numero { background: #2e7d32; color: white; border-radius: 50%; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; margin-right: 10px; flex-shrink: 0; font-weight: bold; font-size: 12px; }
-        
-        .footer-btns { padding: 15px; text-align: center; background: #fff; position: sticky; bottom: 0; display: flex; flex-direction: column; gap: 10px; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); }
-        .btn { width: 100%; padding: 16px; border-radius: 10px; border: none; font-weight: bold; font-size: 16px; cursor: pointer; text-transform: uppercase; transition: 0.3s; }
-        
-        .btn-gps { background: #2196F3; color: white; } /* Botão Azul para GPS */
-        .btn-scan { background: #ff9800; color: white; box-shadow: 0 4px #e68a00; font-size: 18px; }
-        
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap');
+        body { margin: 0; font-family: 'Inter', sans-serif; background: #f4f7f6; color: #2d3436; }
+        .header { padding: 30px 20px; background: #1b5e20; color: white; text-align: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .header h1 { margin: 0; font-size: 24px; }
+        .header small { opacity: 0.9; font-weight: 300; line-height: 1.6; display: block; margin-top: 10px; max-width: 600px; margin-left: auto; margin-right: auto; }
+        #map { height: 400px; width: 100%; border-bottom: 4px solid #1b5e20; z-index: 1; background: #e0e0e0; }
+        .container { max-width: 800px; margin: 0 auto; padding: 20px; }
+        .section-card { background: white; border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .section-card h3 { color: #1b5e20; margin-top: 0; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        .passo { display: flex; align-items: center; margin-bottom: 15px; }
+        .numero { background: #ff9800; color: white; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; margin-right: 15px; flex-shrink: 0; font-weight: bold; }
+        .info-grid { display: grid; grid-template-columns: 1fr; gap: 15px; }
+        .info-item b { color: #1b5e20; display: block; margin-bottom: 5px; }
+        .footer-btns { padding: 20px; text-align: center; position: sticky; bottom: 0; background: rgba(255,255,255,0.9); backdrop-filter: blur(5px); z-index: 100; }
+        .btn-scan { background: #ff9800; color: white; padding: 18px; border-radius: 50px; border: none; font-weight: bold; font-size: 18px; cursor: pointer; width: 100%; max-width: 400px; box-shadow: 0 4px 15px rgba(255,152,0,0.4); transition: transform 0.2s; }
+        .btn-scan:active { transform: scale(0.98); }
         #camera-container { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: black; z-index: 9999; }
         video { width: 100%; height: 100%; object-fit: cover; }
-        .capture-circle { position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%); width: 75px; height: 75px; background: white; border-radius: 50%; border: 5px solid #ccc; cursor: pointer; }
-        #loading { display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-size: 18px; font-weight: bold; text-align: center; background: rgba(0,0,0,0.8); padding: 20px; border-radius: 10px; }
+        .capture-circle { position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%); width: 75px; height: 75px; background: white; border-radius: 50%; border: 5px solid #ccc; }
+        .social-footer { text-align: center; padding: 20px; font-size: 14px; color: #636e72; }
+        .social-footer a { color: #1b5e20; text-decoration: none; font-weight: bold; }
     </style>
 </head>
 <body>
-
 <div class="header">
-    <strong>FruitMap - Inteligência Artificial no Urbanos de Goiania </strong><br>
-    <small>O FruitMap é uma plataforma inovadora criada para conectar vizinhos e evitar o desperdício de frutas em áreas urbanas. Utilizando geolocalização e inteligência artificial, o app identifica colheitas em quintais particulares e avisa a vizinhança quando os frutos estão prontos para consumo, venda ou troca.</small>
-
+    <h1>FruitMap - IA no Pomar Urbano</h1>
+    <small>Conectando vizinhos para evitar o desperdício. Identifique colheitas e avise a vizinhança quando os frutos estão prontos.</small>
+</div>
 <div id="map"></div>
-
-<section class="instrucoes">
-    <h3>COMO USAR O PORTAL:</h3>
-    <div class="passo"><div class="numero">1</div><div>Use o botão azul para o <strong>GPS</strong> te encontrar no mapa.</div></div>
-    <div class="passo"><div class="numero">2</div><div>Aponte a câmera para a fruta e use a <strong>IA</strong> para identificar.</div></div>
-    <div class="passo"><div class="numero">3</div><div>Confirme os dados e ajude a comunidade de Goiânia!</div></div>
-</section>
-</section>
+<div class="container">
+    <section class="section-card">
+        <h3>COMO CADASTRAR:</h3>
+        <div class="passo"><div class="numero">1</div><div>Arraste o mapa até a sua localização ou na árvore do local correto.</div></div>
+        <div class="passo"><div class="numero">2</div><div>Clique em "📸 IDENTIFICAR COM IA" e tire uma foto.</div></div>
+        <div class="passo"><div class="numero">3</div><div>Ativr sua LOCALIZAÇÃO.</div></div>
+        <div class="passo"><div class="numero">4</div><div>Informe o nome e WhatsApp para contato.</div></div>
+    </section>
     <section class="section-card">
         <h3>🚀 Funcionalidades (MVP)</h3>
         <div class="info-grid">
@@ -65,8 +61,10 @@
         </div>
     </section>
     <div class="social-footer">
-        Projeto em desenvolvimento por <a href="https://luiiisreis.github.io/frui.tmap/" target="_blank">@luiiis_reis</a>
+        Projeto em desenvolvimento por <a href="https://www.instagram.com/luiiis_reis?igsh=bzhvNmJ1Ym1rc3Fv" target="_blank">@luiiis_reis</a>
     </div>
+        Siga-nos na redee sociais <a href="https://www.instagram.com/frui.tmap?igsh=MXN0OXE3a2d5cmdveQ==" target="_blank">@frui.tmap</a>
+</div>
         
 <div class="footer-btns">
     <button class="btn btn-gps" onclick="localizarUsuario()">📍 ATIVAR MINHA LOCALIZAÇÃO</button>

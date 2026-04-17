@@ -7,6 +7,10 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet"></script>
+    
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap');
         body { margin: 0; font-family: 'Inter', sans-serif; background: #f4f7f6; color: #2d3436; }
@@ -42,7 +46,7 @@
         <h3>COMO CADASTRAR:</h3>
         <div class="passo"><div class="numero">1</div><div>Arraste o mapa até a sua localização ou na árvore do local correto.</div></div>
         <div class="passo"><div class="numero">2</div><div>Clique em "📸 IDENTIFICAR COM IA" e tire uma foto.</div></div>
-        <div class="passo"><div class="numero">3</div><div>Ativr sua LOCALIZAÇÃO.</div></div>
+        <div class="passo"><div class="numero">3</div><div>Ative sua LOCALIZAÇÃO.</div></div>
         <div class="passo"><div class="numero">4</div><div>Informe o nome e WhatsApp para contato.</div></div>
     </section>
     <section class="section-card">
@@ -63,7 +67,7 @@
     <div class="social-footer">
         Projeto em desenvolvimento por <a href="https://www.instagram.com/luiiis_reis?igsh=bzhvNmJ1Ym1rc3Fv" target="_blank">@luiiis_reis</a>
     </div>
-        Siga-nos na redee sociais <a href="https://www.instagram.com/frui.tmap?igsh=MXN0OXE3a2d5cmdveQ==" target="_blank">@frui.tmap</a>
+        Siga-nos na rede sociais <a href="https://www.instagram.com/frui.tmap?igsh=MXN0OXE3a2d5cmdveQ==" target="_blank">@frui.tmap</a>
 </div>
         
 <div class="footer-btns">
@@ -75,7 +79,8 @@
     <video id="video" autoplay playsinline></video>
     <div class="capture-circle" onclick="takePhotoAndClassify()"></div>
     <button onclick="stopCamera()" style="position:fixed; top:20px; right:20px; background:red; color:white; border:none; padding:10px 15px; border-radius:5px; font-weight:bold; z-index: 10000;">FECHAR</button>
-    <div id="loading">IA ANALISANDO FRUTA...</div>
+    
+    <div id="loading" style="display:none; position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); background:white; padding:10px; border-radius:8px; z-index:10001; font-weight:bold;">IA ANALISANDO FRUTA...</div>
 </div>
 
 <canvas id="canvas" style="display:none;"></canvas>
@@ -143,40 +148,53 @@
         }
     }
 
+    // Função de classificação corrigida com bloco Try/Catch
     async function takePhotoAndClassify() {
-        if (!model) { alert("Aguarde a IA carregar..."); return; }
+        if (!model) { 
+            alert("Aguarde a IA carregar... Se demorar, verifique a internet."); 
+            return; 
+        }
+        
         loading.style.display = 'block';
 
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        canvas.getContext('2d').drawImage(video, 0, 0);
+        try {
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            canvas.getContext('2d').drawImage(video, 0, 0);
 
-        const predictions = await model.classify(canvas);
-        loading.style.display = 'none';
-
-        if (predictions && predictions.length > 0) {
-            const topFruta = predictions[0].className.split(',')[0];
-            const frutaConfirmada = prompt(`A IA identificou: ${topFruta}.\nConfirme o nome da fruta:`, topFruta);
+            const predictions = await model.classify(canvas);
             
-            if (frutaConfirmada) {
-                const zap = prompt("Seu WhatsApp com DDD (Ex: 629...):");
-                if(zap) {
-                    const centro = map.getCenter();
-                    const { error } = await _supabase.from('colheitas').insert([{ 
-                        fruta: frutaConfirmada, 
-                        whatsapp: zap, 
-                        lat: centro.lat, 
-                        lng: centro.lng, 
-                        status: 'Ativo' 
-                    }]);
-                    
-                    if(!error) {
-                        alert("✅ FRUTA CADASTRADA!");
-                        location.reload();
+            loading.style.display = 'none';
+
+            if (predictions && predictions.length > 0) {
+                const topFruta = predictions[0].className.split(',')[0];
+                const frutaConfirmada = prompt(`A IA identificou: ${topFruta}.\nConfirme o nome da fruta:`, topFruta);
+                
+                if (frutaConfirmada) {
+                    const zap = prompt("Seu WhatsApp com DDD (Ex: 629...):");
+                    if(zap) {
+                        const centro = map.getCenter();
+                        const { error } = await _supabase.from('colheitas').insert([{ 
+                            fruta: frutaConfirmada, 
+                            whatsapp: zap, 
+                            lat: centro.lat, 
+                            lng: centro.lng, 
+                            status: 'Ativo' 
+                        }]);
+                        
+                        if(!error) {
+                            alert("✅ FRUTA CADASTRADA!");
+                            location.reload();
+                        }
                     }
                 }
             }
+        } catch (erro) {
+            loading.style.display = 'none';
+            alert("Erro ao analisar a imagem. Tente novamente.");
+            console.error("Erro na classificação: ", erro);
         }
+        
         stopCamera();
     }
 

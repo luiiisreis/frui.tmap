@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FruitMap GYN - Portal IA Oficial</title>
+    <title>FruitMap GYN - Portal IA com GPS</title>
     
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -17,100 +17,100 @@
         .header { padding: 15px; background: #2e7d32; color: white; text-align: center; }
         #map { height: 45vh; width: 100%; border-bottom: 4px solid #2e7d32; }
         
-        /* Seção de Instruções Completas */
         .instrucoes { padding: 20px; background: #f9f9f9; }
         .instrucoes h3 { color: #2e7d32; margin-top: 0; font-size: 18px; }
-        .passo { display: flex; align-items: flex-start; margin-bottom: 15px; font-size: 14px; }
-        .numero { background: #2e7d32; color: white; border-radius: 50%; width: 25px; height: 25px; display: flex; align-items: center; justify-content: center; margin-right: 10px; flex-shrink: 0; font-weight: bold; font-size: 14px; }
+        .passo { display: flex; align-items: flex-start; margin-bottom: 12px; font-size: 14px; }
+        .numero { background: #2e7d32; color: white; border-radius: 50%; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; margin-right: 10px; flex-shrink: 0; font-weight: bold; font-size: 12px; }
         
-        .footer-btns { padding: 15px; text-align: center; background: #fff; position: sticky; bottom: 0; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); }
-        .btn { width: 100%; padding: 16px; border-radius: 10px; border: none; font-weight: bold; font-size: 18px; cursor: pointer; }
-        .btn-scan { background: #ff9800; color: white; box-shadow: 0 4px #e68a00; }
+        .footer-btns { padding: 15px; text-align: center; background: #fff; position: sticky; bottom: 0; display: flex; flex-direction: column; gap: 10px; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); }
+        .btn { width: 100%; padding: 16px; border-radius: 10px; border: none; font-weight: bold; font-size: 16px; cursor: pointer; text-transform: uppercase; transition: 0.3s; }
         
-        /* Câmera e Loading */
+        .btn-gps { background: #2196F3; color: white; } /* Botão Azul para GPS */
+        .btn-scan { background: #ff9800; color: white; box-shadow: 0 4px #e68a00; font-size: 18px; }
+        
         #camera-container { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: black; z-index: 9999; }
         video { width: 100%; height: 100%; object-fit: cover; }
         .capture-circle { position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%); width: 75px; height: 75px; background: white; border-radius: 50%; border: 5px solid #ccc; cursor: pointer; }
-        #loading { display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-size: 18px; font-weight: bold; text-align: center; background: rgba(0,0,0,0.7); padding: 20px; border-radius: 10px; }
+        #loading { display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-size: 18px; font-weight: bold; text-align: center; background: rgba(0,0,0,0.8); padding: 20px; border-radius: 10px; }
     </style>
 </head>
 <body>
 
 <div class="header">
-    <strong>PORTAL IA FRUITMAP GYN</strong><br>
-    <small>Colha frutas frescas perto de você!</small>
+    <strong>PORTAL FRUITMAP GOIÂNIA</strong><br>
+    <small>Mapeando os Quintais de GYN com IA</small>
 </div>
 
 <div id="map"></div>
 
 <section class="instrucoes">
-    <h3>COMO CADASTRAR COM A IA:</h3>
-    
-    <div class="passo">
-        <div class="numero">1</div>
-        <div><strong>Localize:</strong> Arraste o mapa até que o centro esteja exatamente sobre a árvore.</div>
-    </div>
-    
-    <div class="passo">
-        <div class="numero">2</div>
-        <div><strong>Identifique:</strong> Clique no botão laranja abaixo, aponte a câmera para a fruta e clique no botão branco para a IA adivinhar.</div>
-    </div>
-    
-    <div class="passo">
-        <div class="numero">3</div>
-        <div><strong>Compartilhe:</strong> Confirme o nome da fruta e coloque seu WhatsApp para que os vizinhos combinem a colheita com você!</div>
-    </div>
-    
-    <p style="font-size: 13px; color: #666; font-style: italic;">* Ajude Goiânia a ser uma cidade com mais pomares urbanos mapeados.</p>
+    <h3>COMO USAR O PORTAL:</h3>
+    <div class="passo"><div class="numero">1</div><div>Use o botão azul para o <strong>GPS</strong> te encontrar no mapa.</div></div>
+    <div class="passo"><div class="numero">2</div><div>Aponte a câmera para a fruta e use a <strong>IA</strong> para identificar.</div></div>
+    <div class="passo"><div class="numero">3</div><div>Confirme os dados e ajude a comunidade de Goiânia!</div></div>
 </section>
 
 <div class="footer-btns">
+    <button class="btn btn-gps" onclick="localizarUsuario()">📍 ATIVAR MINHA LOCALIZAÇÃO</button>
     <button class="btn btn-scan" onclick="startCamera()">📸 IDENTIFICAR COM IA</button>
 </div>
 
 <div id="camera-container">
     <video id="video" autoplay playsinline></video>
     <div class="capture-circle" onclick="takePhotoAndClassify()"></div>
-    <button onclick="stopCamera()" style="position:fixed; top:20px; right:20px; background:rgba(255,0,0,0.8); color:white; border:none; padding:10px 15px; border-radius:5px; font-weight:bold; z-index: 10000;">SAIR</button>
-    <div id="loading">A IA ESTÁ PENSANDO...<br><small>(aguarde uns segundos)</small></div>
+    <button onclick="stopCamera()" style="position:fixed; top:20px; right:20px; background:red; color:white; border:none; padding:10px 15px; border-radius:5px; font-weight:bold; z-index: 10000;">FECHAR</button>
+    <div id="loading">IA ANALISANDO FRUTA...</div>
 </div>
 
 <canvas id="canvas" style="display:none;"></canvas>
 
 <script>
-    // 1. SUPABASE
+    // 1. CONFIGURAÇÕES (Supabase)
     const SUPABASE_URL = 'https://dcvrmdbgwjddkpzjtlkq.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_L7TOtZx76mq3g2N_cPMWFg_B1DpQ9rC';
     const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    // 2. MAPA
+    // 2. INICIALIZA MAPA
     var map = L.map('map').setView([-16.6869, -49.2648], 13);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap'
+    }).addTo(map);
 
-    // 3. CARREGAR PONTOS
+    // 3. FUNÇÃO DE GPS (GEOLOCALIZAÇÃO)
+    function localizarUsuario() {
+        map.locate({setView: true, maxZoom: 18});
+    }
+
+    map.on('locationfound', function(e) {
+        // Adiciona um marcador de onde o usuário está
+        L.circle(e.latlng, e.accuracy / 2).addTo(map);
+        L.marker(e.latlng).addTo(map).bindPopup("Você está aqui!").openPopup();
+    });
+
+    map.on('locationerror', function(e) {
+        alert("Não conseguimos acessar seu GPS: " + e.message);
+    });
+
+    // 4. CARREGAR PONTOS EXISTENTES
     async function carregarPontos() {
-        try {
-            const { data: frutas } = await _supabase.from('colheitas').select('*');
-            if (frutas) {
-                frutas.forEach(f => {
-                    L.marker([f.lat, f.lng]).addTo(map)
-                     .bindPopup(`<b>${f.fruta}</b><br>Zap: ${f.whatsapp}<br><a href="https://wa.me/55${f.whatsapp.replace(/\D/g,'')}" target="_blank" style="color:green; font-weight:bold;">Chamar no Zap</a>`);
-                });
-            }
-        } catch (e) { console.log("Erro ao carregar mapa"); }
+        const { data: frutas } = await _supabase.from('colheitas').select('*');
+        if (frutas) {
+            frutas.forEach(f => {
+                L.marker([f.lat, f.lng]).addTo(map)
+                 .bindPopup(`<b>${f.fruta}</b><br>Zap: ${f.whatsapp}<br><a href="https://wa.me/55${f.whatsapp.replace(/\D/g,'')}" target="_blank" style="color:green; font-weight:bold;">Chamar no Zap</a>`);
+            });
+        }
     }
     carregarPontos();
 
-    // 4. CARREGAR IA
+    // 5. CARREGAR IA
     let model;
     async function loadModel() {
-        console.log("Carregando modelo de IA...");
         model = await mobilenet.load();
-        console.log("Modelo carregado!");
     }
     loadModel();
 
-    // 5. CÂMERA E CLASSIFICAÇÃO
+    // 6. CÂMERA E IA
     const video = document.getElementById('video');
     const cameraContainer = document.getElementById('camera-container');
     const loading = document.getElementById('loading');
@@ -122,58 +122,45 @@
             const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
             video.srcObject = stream;
         } catch(e) { 
-            alert("Erro ao acessar a câmera. Verifique as permissões.");
+            alert("Erro na câmera.");
             stopCamera();
         }
     }
 
     async function takePhotoAndClassify() {
-        if (!model) { alert("Aguarde um momento, a IA ainda está carregando no seu celular."); return; }
-        
+        if (!model) { alert("Aguarde a IA carregar..."); return; }
         loading.style.display = 'block';
-        document.querySelector('.capture-circle').style.pointerEvents = 'none';
 
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
         canvas.getContext('2d').drawImage(video, 0, 0);
 
-        try {
-            const predictions = await model.classify(canvas);
+        const predictions = await model.classify(canvas);
+        loading.style.display = 'none';
+
+        if (predictions && predictions.length > 0) {
+            const topFruta = predictions[0].className.split(',')[0];
+            const frutaConfirmada = prompt(`A IA identificou: ${topFruta}.\nConfirme o nome da fruta:`, topFruta);
             
-            loading.style.display = 'none';
-            document.querySelector('.capture-circle').style.pointerEvents = 'auto';
-
-            if (predictions && predictions.length > 0) {
-                const topFruta = predictions[0].className.split(',')[0];
-                const certeza = (predictions[0].probability * 100).toFixed(0);
-
-                const frutaConfirmada = prompt(`A IA acha que é: ${topFruta} (${certeza}% de certeza).\nConfirme o nome da fruta ou corrija se a IA errou:`, topFruta);
-                
-                if (frutaConfirmada) {
-                    const zap = prompt("Seu WhatsApp (com DDD) para contato:");
-                    if(zap) {
-                        const centro = map.getCenter();
-                        const { error } = await _supabase.from('colheitas').insert([{ 
-                            fruta: frutaConfirmada, 
-                            whatsapp: zap, 
-                            lat: centro.lat, 
-                            lng: centro.lng, 
-                            status: 'Ativo' 
-                        }]);
-                        
-                        if(!error) {
-                            alert("✅ SUCESSO! A árvore foi salva no FruitMap.");
-                            location.reload();
-                        } else { alert("Erro ao salvar. Verifique a conexão."); }
+            if (frutaConfirmada) {
+                const zap = prompt("Seu WhatsApp com DDD (Ex: 629...):");
+                if(zap) {
+                    const centro = map.getCenter();
+                    const { error } = await _supabase.from('colheitas').insert([{ 
+                        fruta: frutaConfirmada, 
+                        whatsapp: zap, 
+                        lat: centro.lat, 
+                        lng: centro.lng, 
+                        status: 'Ativo' 
+                    }]);
+                    
+                    if(!error) {
+                        alert("✅ FRUTA CADASTRADA!");
+                        location.reload();
                     }
                 }
-            } else { alert("A IA não conseguiu identificar. Tente de novo."); }
-        } catch(e) {
-            alert("Erro ao processar a imagem.");
-            loading.style.display = 'none';
-            document.querySelector('.capture-circle').style.pointerEvents = 'auto';
+            }
         }
-        
         stopCamera();
     }
 
@@ -181,7 +168,6 @@
         if (video.srcObject) video.srcObject.getTracks().forEach(t => t.stop());
         cameraContainer.style.display = 'none';
         loading.style.display = 'none';
-        document.querySelector('.capture-circle').style.pointerEvents = 'auto';
     }
 </script>
 </body>

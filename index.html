@@ -8,28 +8,39 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { margin: 0; font-family: sans-serif; background: #f4f4f4; }
-        #map { height: 70vh; width: 100%; border-bottom: 4px solid #2e7d32; }
-        .header { padding: 10px; background: #2e7d32; color: white; text-align: center; }
-        .footer-btns { padding: 15px; display: flex; flex-direction: column; gap: 10px; }
-        .btn { padding: 15px; border-radius: 8px; border: none; font-weight: bold; font-size: 16px; cursor: pointer; text-transform: uppercase; }
+        body { margin: 0; font-family: 'Segoe UI', Arial, sans-serif; background: #fff; color: #333; }
+        .header { padding: 15px; background: #2e7d32; color: white; text-align: center; }
+        #map { height: 45vh; width: 100%; border-bottom: 4px solid #2e7d32; }
+        .instrucoes { padding: 15px; background: #f9f9f9; }
+        .instrucoes h3 { color: #2e7d32; margin-top: 0; font-size: 18px; }
+        .passo { display: flex; align-items: flex-start; margin-bottom: 12px; font-size: 14px; }
+        .numero { background: #2e7d32; color: white; border-radius: 50%; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; margin-right: 10px; flex-shrink: 0; font-weight: bold; font-size: 12px; }
+        .footer-btns { padding: 15px; text-align: center; background: #fff; position: sticky; bottom: 0; }
+        .btn { width: 100%; padding: 16px; border-radius: 10px; border: none; font-weight: bold; font-size: 18px; cursor: pointer; }
         .btn-scan { background: #ff9800; color: white; box-shadow: 0 4px #e68a00; }
         #camera-container { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: black; z-index: 9999; }
         video { width: 100%; height: 100%; object-fit: cover; }
-        .capture-circle { position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); width: 70px; height: 70px; background: white; border-radius: 50%; border: 5px solid #ccc; }
+        .capture-circle { position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%); width: 75px; height: 75px; background: white; border-radius: 50%; border: 5px solid #ccc; }
     </style>
 </head>
 <body>
 
 <div class="header">
-    <strong>PORTAL FRUITMAP GOIÂNIA</strong><br>
-    <small>Toque nos ícones para ver as frutas disponíveis</small>
+    <strong>FRUITMAP GOIÂNIA</strong><br>
+    <small>Mapeando os Quintais de GYN</small>
 </div>
 
 <div id="map"></div>
 
+<section class="instrucoes">
+    <h3>COMO CADASTRAR:</h3>
+    <div class="passo"><div class="numero">1</div><div>Arraste o mapa até a árvore ficar no centro.</div></div>
+    <div class="passo"><div class="numero">2</div><div>Clique no botão laranja e tire uma foto.</div></div>
+    <div class="passo"><div class="numero">3</div><div>Coloque o nome e seu Zap para os vizinhos.</div></div>
+</section>
+
 <div class="footer-btns">
-    <button class="btn btn-scan" onclick="startCamera()">📸 CADASTRAR ÁRVORE AGORA</button>
+    <button class="btn btn-scan" onclick="startCamera()">📸 CADASTRAR ÁRVORE</button>
 </div>
 
 <div id="camera-container">
@@ -46,38 +57,47 @@
     var map = L.map('map').setView([-16.6869, -49.2648], 13);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-    // FUNÇÃO QUE LÊ AS FRUTAS DO BANCO E PÕE NO MAPA
     async function carregarPontos() {
-        const { data: frutas, error } = await _supabase.from('colheitas').select('*');
-        if (frutas) {
-            frutas.forEach(f => {
-                L.marker([f.lat, f.lng])
-                 .addTo(map)
-                 .bindPopup(`<b>${f.fruta}</b><br>Zap: ${f.whatsapp}<br><a href="https://wa.me/55${f.whatsapp.replace(/\D/g,'')}" target="_blank" style="color:green; font-weight:bold;">Chamar no WhatsApp</a>`);
-            });
-        }
+        try {
+            const { data: frutas } = await _supabase.from('colheitas').select('*');
+            if (frutas) {
+                frutas.forEach(f => {
+                    L.marker([f.lat, f.lng]).addTo(map)
+                     .bindPopup(`<b>${f.fruta}</b><br>Zap: ${f.whatsapp}<br><a href="https://wa.me/55${f.whatsapp.replace(/\D/g,'')}" target="_blank" style="color:green;">Chamar no Zap</a>`);
+                });
+            }
+        } catch (e) { console.log("Erro ao carregar mapa"); }
     }
-
-    // Carrega os pontos assim que o site abre
     carregarPontos();
 
     async function saveData() {
         const nome = prompt("Nome da Fruta:");
-        const zap = prompt("Seu WhatsApp (com DDD):");
+        const zap = prompt("WhatsApp (com DDD):");
+        
         if(nome && zap) {
             const centro = map.getCenter();
-            await _supabase.from('colheitas').insert([{ fruta: nome, whatsapp: zap, lat: centro.lat, lng: centro.lng }]);
-            alert("Cadastrado com sucesso! Recarregue para ver no mapa.");
-            location.reload();
+            // Tenta salvar os dados
+            const { error } = await _supabase.from('colheitas').insert([
+                { fruta: nome, whatsapp: zap, lat: centro.lat, lng: centro.lng, status: 'Ativo' }
+            ]);
+            
+            if(!error) {
+                alert("✅ Árvore cadastrada em Goiânia!");
+                location.reload();
+            } else {
+                console.error(error);
+                alert("Erro ao salvar no banco. Tente novamente.");
+            }
         }
         stopCamera();
     }
 
-    // Controle da Câmera
     async function startCamera() {
         document.getElementById('camera-container').style.display = 'block';
-        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
-        document.getElementById('video').srcObject = stream;
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+            document.getElementById('video').srcObject = stream;
+        } catch(e) { alert("Câmera não disponível."); stopCamera(); }
     }
     function stopCamera() {
         const video = document.getElementById('video');
